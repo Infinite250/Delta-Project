@@ -1484,7 +1484,7 @@ function applyPersonality(text) {
         ? text
         : text + " (Again.)";
     default:
-      return text;
+      return text.trim();
   }
 }
 function debugDeltaState(label = "") {
@@ -2003,3 +2003,4 @@ setInterval(deltaIdleLoop, 60_000); // checks every 60 seconds
 
 
 </script>
+
