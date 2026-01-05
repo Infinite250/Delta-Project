@@ -3,290 +3,593 @@
 <head>
     <title>Delta - AI Secretary</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    #app-container {
+        width: 100%;
+        max-width: 700px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 90vh;
+        max-height: 800px;
+        position: relative;
+    }
+    
+    #header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+        flex-shrink: 0;
+    }
+    
+    #header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    #status {
+        font-size: 14px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    #status-indicator {
+        width: 8px;
+        height: 8px;
+        background: #4ade80;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    #stats {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-top: 8px;
+    }
+    
+    #clear-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    
+    #clear-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    #todo-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    #todo-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    #chat-container {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8fafc;
+        min-height: 0;
+    }
+    
+    #chat-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    #chat-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    
+    #chat-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    .message {
+        margin-bottom: 16px;
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 16px;
+        max-width: 80%;
+        word-wrap: break-word;
+        position: relative;
+    }
+    
+    .user-message .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .ai-message .message-content {
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .timestamp {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+        padding: 0 4px;
+    }
+    
+    .user-message .timestamp {
+        text-align: right;
+    }
+    
+    .ai-message .timestamp {
+        text-align: left;
+    }
+    
+    #typing-indicator {
+        display: none;
+        padding: 12px 16px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        border-bottom-left-radius: 4px;
+        max-width: 80px;
+        margin-bottom: 16px;
+    }
+    
+    #typing-indicator.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    
+    .typing-dots span {
+        width: 8px;
+        height: 8px;
+        background: #94a3b8;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite;
+    }
+    
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes bounce {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-8px);
+        }
+    }
+    
+    #input-container {
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    
+    #user-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.2s;
+        outline: none;
+    }
+    
+    #user-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    #user-input:disabled {
+        background: #f1f5f9;
+        cursor: not-allowed;
+    }
+    
+    .icon-button {
+        padding: 10px;
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 18px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .icon-button:hover:not(:disabled) {
+        background: #e2e8f0;
+        color: #475569;
+    }
+    
+    .icon-button.active {
+        background: #667eea;
+        color: white;
+    }
+    
+    .icon-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    #send-button {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        flex-shrink: 0;
+    }
+    
+    #send-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    #send-button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    
+    #send-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* To-Do Panel */
+    #todo-panel {
+        display: none;
+        position: absolute;
+        top: 120px;
+        right: 20px;
+        width: 300px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        max-height: 400px;
+        overflow: hidden;
+    }
+
+    #todo-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #todo-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    #todo-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        line-height: 1;
+    }
+
+    #todo-items {
+        padding: 12px;
+        max-height: 340px;
+        overflow-y: auto;
+    }
+
+    .todo-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    .todo-item.completed .todo-text {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+
+    .todo-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .todo-text {
+        flex: 1;
+        font-size: 14px;
+        color: #1e293b;
+    }
+
+    .todo-delete {
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .todo-delete:hover {
+        background: #dc2626;
+    }
+    
+    @media (max-width: 768px) {
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: 0;
         }
         
         #app-container {
-            width: 100%;
-            max-width: 700px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 90vh;
-            max-height: 800px;
-        }
-        
-        /* Header */
-        #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
         }
         
         #header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        #status {
-            font-size: 14px;
-            opacity: 0.9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        #status-indicator {
-            width: 8px;
-            height: 8px;
-            background: #4ade80;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        #stats {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-top: 8px;
-        }
-        
-        /* Chat Container */
-        #chat-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f8fafc;
-        }
-        
-        #chat-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        #chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        #chat-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        
-        #chat-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        /* Messages */
-        .message {
-            margin-bottom: 16px;
-            animation: slideIn 0.3s ease-out;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            font-size: 24px;
         }
         
         .message-content {
-            padding: 12px 16px;
-            border-radius: 16px;
-            max-width: 80%;
-            word-wrap: break-word;
-            position: relative;
+            max-width: 85%;
         }
         
-        .user-message .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
+        #todo-panel {
+            right: 10px;
+            left: 10px;
+            width: auto;
         }
         
-        .ai-message .message-content {
-            background: white;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-        
-        .timestamp {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 4px;
-            padding: 0 4px;
-        }
-        
-        .user-message .timestamp {
-            text-align: right;
-        }
-        
-        .ai-message .timestamp {
-            text-align: left;
-        }
-        
-        /* Typing Indicator */
-        #typing-indicator {
-            display: none;
-            padding: 12px 16px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            border-bottom-left-radius: 4px;
-            max-width: 80px;
-            margin-bottom: 16px;
-        }
-        
-        #typing-indicator.show {
-            display: block;
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-        
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            background: #94a3b8;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite;
-        }
-        
-        .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes bounce {
-            0%, 60%, 100% {
-                transform: translateY(0);
-            }
-            30% {
-                transform: translateY(-8px);
-            }
-        }
-        
-        /* Input Area */
         #input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            gap: 12px;
+            padding: 12px;
+            gap: 6px;
         }
         
         #user-input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            font-family: inherit;
-            transition: all 0.2s;
-            outline: none;
+            padding: 10px 14px;
+            font-size: 14px;
         }
         
-        #user-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        #user-input:disabled {
-            background: #f1f5f9;
-            cursor: not-allowed;
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
         }
         
         #send-button {
-            padding: 14px 28px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            padding: 10px 20px;
+            font-size: 14px;
         }
-        
-        #send-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        #send-button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        #send-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-            }
-            
-            #app-container {
-                height: 100vh;
-                max-height: 100vh;
-                border-radius: 0;
-            }
-            
-            #header h1 {
-                font-size: 24px;
-            }
-            
-            .message-content {
-                max-width: 85%;
-            }
-        }
-    </style>
+    }
+/* Notes Button */
+#notes-btn {
+    position: absolute;
+    top: 20px;
+    left: 110px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+#notes-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Notes Panel */
+#notes-panel {
+    display: none;
+    position: absolute;
+    top: 120px;
+    left: 20px;
+    width: 350px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    max-height: 400px;
+    overflow: hidden;
+}
+
+#notes-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notes-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+#notes-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+}
+
+#notes-items {
+    padding: 12px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.note-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 3px solid #10b981;
+}
+
+.note-text {
+    font-size: 14px;
+    color: #1e293b;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.note-timestamp {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.note-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.note-delete:hover {
+    background: #dc2626;
+}
+</style>
 </head>
 <body>
     <div id="app-container">
-        <!-- Header -->
         <div id="header">
+            <button id="todo-btn">📋 Tasks</button>
+            <button id="notes-btn">📝 Notes</button>
+            <button id="clear-btn">🗑️ Clear</button>
             <h1>⚡ Delta</h1>
             <div id="status">
                 <div id="status-indicator"></div>
@@ -295,9 +598,24 @@
             <div id="stats">Messages: 0</div>
         </div>
         
-        <!-- Chat Area -->
+        <!-- To-Do Panel -->
+        <div id="todo-panel">
+            <div id="todo-header">
+                <h3>📋 Tasks</h3>
+                <button id="todo-close">×</button>
+            </div>
+            <div id="todo-items"></div>
+        </div>
+        <!-- Notes Panel -->
+<div id="notes-panel">
+    <div id="notes-header">
+        <h3>📝 Notes</h3>
+        <button id="notes-close">×</button>
+    </div>
+    <div id="notes-items"></div>
+</div>
+
         <div id="chat-container">
-            <!-- Typing indicator -->
             <div id="typing-indicator">
                 <div class="typing-dots">
                     <span></span>
@@ -307,253 +625,1381 @@
             </div>
         </div>
         
-        <!-- Input Area -->
         <div id="input-container">
+            <button id="voice-input-btn" class="icon-button" title="Voice Input">🎤</button>
             <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off">
+            <button id="voice-output-btn" class="icon-button" title="Toggle Voice Output">🔊</button>
             <button id="send-button">Send</button>
         </div>
     </div>
 
-   <script>
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    const statsDiv = document.getElementById('stats');
-    const typingIndicator = document.getElementById('typing-indicator');
-    
-    let userName = "";
-    let messageCount = 0;
-    let conversationHistory = [];
-    let topicMemory = {};
-    
-    const trackableTopics = {
-        "gaming": ["game", "games", "gaming", "video game", "play"],
-        "pizza": ["pizza", "pizzas"],
-        "coffee": ["coffee", "caffeine"],
-        "tired": ["tired", "sleepy", "exhausted"],
-        "bored": ["bored", "boring"]
-    };
-    
-    function rememberTopics(message) {
-        const lowerMessage = message.toLowerCase();
-        for (let topic in trackableTopics) {
-            const keywords = trackableTopics[topic];
-            for (let keyword of keywords) {
-                if (lowerMessage.includes(keyword)) {
-                    if (topicMemory[topic]) {
-                        topicMemory[topic]++;
-                    } else {
-                        topicMemory[topic] = 1;
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Google Gemini API Integration
-    async function callGemini(userMessage) {
-    console.log("📡 Calling Gemini API...");
-    
-    // ⚠️ REPLACE WITH YOUR GEMINI API KEY
-    const API_KEY = 'AIzaSyCiJ9CC9DrbpAltWR5Y2wNh7NYqvHqEVwo';
-    
-    // Build Delta's personality
-    let systemInstruction = `You are Delta, a sarcastic and playful AI secretary. You're helpful but have attitude and can be snappy sometimes. 
-    You keep responses concise and conversational (2-3 sentences max). You occasionally make jokes about the user forgetting things or being disorganized.`;
-    
-    if (userName) {
-        systemInstruction += ` The user's name is ${userName}. Use it naturally.`;
-    }
-    
-    // Build conversation history
-    const contents = [];
-    
-    // Add recent conversation context
-    const recentHistory = conversationHistory.slice(-8);
-    for (let msg of recentHistory) {
-        contents.push({
-            role: msg.isUser ? "user" : "model",
-            parts: [{ text: msg.text }]
-        });
-    }
-    
-    // Add current message
-    contents.push({
-        role: "user",
-        parts: [{ text: userMessage }]
-    });
-    
-    console.log("📤 Sending to Gemini");
-    
-    // Show typing indicator
-    typingIndicator.classList.add('show');
-    
-    try {
-        // Using Gemini 2.0 Flash (latest model)
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                system_instruction: {
-                    parts: [{ text: systemInstruction }]
-                },
-                contents: contents,
-                generationConfig: {
-                    temperature: 0.9,
-                    maxOutputTokens: 200,
-                    topP: 0.95
-                }
-            })
-        });
+    <script>
+function respondImmediate(text) {
+  addMessage(applyPersonality(text), false);
+}
+
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const statsDiv = document.getElementById('stats');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        const voiceOutputBtn = document.getElementById('voice-output-btn');
         
-        if (!response.ok) {
-            const error = await response.json();
-            console.error("❌ API Error:", error);
-            throw new Error(error.error?.message || 'API request failed');
+        // Creator detection
+        const CREATOR_NAME = "azariah";
+        let isCreator = localStorage.getItem('delta_isCreator') === 'true';
+        
+        let userName = localStorage.getItem('delta_userName') || "";
+        let messageCount = parseInt(localStorage.getItem('delta_messageCount')) || 0;
+        let conversationHistory = JSON.parse(localStorage.getItem('delta_conversationHistory')) || [];
+        let topicMemory = JSON.parse(localStorage.getItem('delta_topicMemory')) || {};
+        let voiceEnabled = localStorage.getItem('delta_voiceEnabled') !== 'false';
+        let selectedVoice = localStorage.getItem('delta_selectedVoice') || null;
+        
+        
+        // To-Do List storage
+        let todoList = JSON.parse(localStorage.getItem('delta_todoList')) || [];
+        let todoIdCounter = parseInt(localStorage.getItem('delta_todoIdCounter')) || 1;
+        // Notes storage
+        let notesList = JSON.parse(localStorage.getItem('delta_notesList')) || [];
+        let noteIdCounter = parseInt(localStorage.getItem('delta_noteIdCounter')) || 1;
+
+        
+       let deltaState = {
+        // Personality
+        mood: "neutral",
+        engagement: 0.5,
+
+        // Activity / timing
+        lastInteraction: Date.now(),
+        lastProactiveMessage: 0,
+
+        // Features
+        idleThoughtsEnabled: true
+      };
+
+
+        
+        if (userName.toLowerCase() === CREATOR_NAME) {
+            isCreator = true;
         }
         
-        const data = await response.json();
-        console.log("📥 Gemini responded!");
+        let recognition = null;
+        let isListening = false;
         
-        // Hide typing indicator
-        typingIndicator.classList.remove('show');
-        
-        // Extract response
-        const aiMessage = data.candidates[0].content.parts[0].text.trim();
-        console.log("💬 Message:", aiMessage);
-        
-        // Remember topics
-        rememberTopics(userMessage);
-        
-        return aiMessage;
-        
-    } catch (error) {
-        typingIndicator.classList.remove('show');
-        console.error("Error calling Gemini:", error);
-        throw error;
+ // ------------------ TASK HELPERS ------------------
+
+// Extract task text from a message
+function extractTaskText(message) {
+    const lower = message.toLowerCase();
+    if (lower.includes('remind me to ')) return message.split(/remind me to /i)[1].trim();
+    if (lower.includes('add task:')) return message.split(/add task:/i)[1].trim();
+    if (lower.includes('add task ')) return message.split(/add task /i)[1].trim();
+    return null;
+}
+
+// Determine if a message is an add-task command
+function isAddTaskMessage(message) {
+    const lower = message.toLowerCase();
+    return lower.includes('remind me to ') || lower.includes('add task');
+}
+
+// Determine if a message asks to show tasks
+function isShowTasksMessage(message) {
+    const lower = message.toLowerCase();
+    return lower.includes('show') && (lower.includes('task') || lower.includes('to-do') || lower.includes('todo'));
+}
+
+// ------------------ NOTE HELPERS ------------------
+
+// Extract note text from a message
+function extractNoteText(message) {
+    const lower = message.toLowerCase();
+    if (lower.includes('remember that ')) return message.split(/remember that /i)[1].trim();
+    if (lower.includes('note:')) return message.split(/note:/i)[1].trim();
+    if (lower.includes('save note ')) return message.split(/save note /i)[1].trim();
+    if (lower.includes('take note ')) return message.split(/take note /i)[1].trim();
+    if (lower.includes('write down that ')) return message.split(/write down that /i)[1].trim();
+    return null;
+}
+
+// Determine if a message is an add-note command
+function isAddNoteMessage(message) {
+    const lower = message.toLowerCase();
+    return lower.includes('remember that ') || lower.includes('note:') ||
+           lower.includes('save note') || lower.includes('take note') || lower.includes('write down that ');
+}
+
+// Determine if a message asks to show notes
+function isShowNotesMessage(message) {
+    const lower = message.toLowerCase();
+    return (lower.includes('show') || lower.includes('list') || lower.includes('see')) &&
+           (lower.includes('note') || lower.includes('notes'));
+}
+
+// Time utilities
+function parseTimeFromMessage(message) {
+    const now = new Date();
+    const lower = message.toLowerCase();
+    let targetTime = null;
+
+    let match = lower.match(/in (\d+) minute/);
+    if (match) {
+        targetTime = new Date(now.getTime() + parseInt(match[1]) * 60000);
+    }
+
+    match = lower.match(/in (\d+) hour/);
+    if (match) {
+        targetTime = new Date(now.getTime() + parseInt(match[1]) * 3600000);
+    }
+
+    if (lower.includes('tomorrow')) {
+        targetTime = new Date(now);
+        targetTime.setDate(now.getDate() + 1);
+        targetTime.setHours(9, 0, 0, 0);
+    }
+
+    match = lower.match(/at (\d{1,2})(?::(\d{2}))?\s?(am|pm)?/);
+    if (match) {
+        let hour = parseInt(match[1]);
+        let minute = match[2] ? parseInt(match[2]) : 0;
+
+        if (match[3]) {
+            if (match[3] === 'pm' && hour < 12) hour += 12;
+            if (match[3] === 'am' && hour === 12) hour = 0;
+        }
+
+        targetTime = targetTime || new Date(now);
+        targetTime.setHours(hour, minute, 0, 0);
+    }
+
+    return targetTime;
+}
+     function parseDueTime(message) {
+    const now = new Date();
+    const lower = message.toLowerCase();
+
+    // in X minutes / hours
+    let match = lower.match(/in (\d+) (minute|minutes|hour|hours)/);
+    if (match) {
+        const amount = parseInt(match[1]);
+        const unit = match[2];
+        const due = new Date(now);
+
+        if (unit.startsWith('minute')) {
+            due.setMinutes(due.getMinutes() + amount);
+        } else {
+            due.setHours(due.getHours() + amount);
+        }
+        return due.getTime();
+    }
+
+    // tomorrow
+    if (lower.includes('tomorrow')) {
+        const due = new Date(now);
+        due.setDate(due.getDate() + 1);
+
+        let timeMatch = lower.match(/at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+        if (timeMatch) {
+            let hour = parseInt(timeMatch[1]);
+            let minute = parseInt(timeMatch[2] || 0);
+            const ampm = timeMatch[3];
+
+            if (ampm === 'pm' && hour < 12) hour += 12;
+            if (ampm === 'am' && hour === 12) hour = 0;
+
+            due.setHours(hour, minute, 0, 0);
+        } else {
+            due.setHours(9, 0, 0, 0); // default tomorrow morning
+        }
+
+        return due.getTime();
+    }
+
+    // at 7pm / today at 6
+    match = lower.match(/at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+    if (match) {
+        const due = new Date(now);
+        let hour = parseInt(match[1]);
+        let minute = parseInt(match[2] || 0);
+        const ampm = match[3];
+
+        if (ampm === 'pm' && hour < 12) hour += 12;
+        if (ampm === 'am' && hour === 12) hour = 0;
+
+        due.setHours(hour, minute, 0, 0);
+
+        // If time already passed today, assume tomorrow
+        if (due < now) {
+            due.setDate(due.getDate() + 1);
+        }
+
+        return due.getTime();
+    }
+
+    // this evening
+    if (lower.includes('this evening')) {
+        const due = new Date(now);
+        due.setHours(18, 0, 0, 0);
+        return due.getTime();
+    }
+
+    return null;
+}
+
+ 
+function splitCommands(message) {
+    // Look for 'note:' and 'remember that' / 'remind me to'
+    const noteMatch = message.match(/(?:note:|write down that)\s*(.+)/i);
+    const taskMatch = message.match(/(?:remind me to|add task:?)/i);
+
+    let noteText = noteMatch ? noteMatch[1].trim() : null;
+    let taskText = null;
+
+    if (taskMatch) {
+        // Task text is everything before the note trigger (if present)
+        const endIndex = noteMatch ? noteMatch.index : message.length;
+        taskText = message.slice(taskMatch.index + taskMatch[0].length, endIndex).trim();
+    }
+
+    return { taskText, noteText };
+}
+
+function getTaskNumber(id) {
+    return todoList.findIndex(t => t.id === id) + 1;
+}
+
+function getNoteNumber(id) {
+    return notesList.findIndex(n => n.id === id) + 1;
+}
+
+function handleTaskQuery(message) {
+    const lowerMsg = message.toLowerCase();
+    let response = "";
+
+   // Time remaining for a task
+if (
+    lowerMsg.includes("how long") ||
+    lowerMsg.includes("when") ||
+    lowerMsg.includes("time left")
+) {
+    const now = Date.now();
+
+    const matchingTask = todoList.find(t =>
+        !t.completed &&
+        t.dueAt &&
+        lowerMsg.includes(t.text.toLowerCase())
+    );
+
+    if (matchingTask) {
+        const diffMs = matchingTask.dueAt - now;
+
+        if (diffMs <= 0) {
+            respondImmediate(message, "That task is due now.");
+            return true;
+        }
+
+        const minutes = Math.round(diffMs / 60000);
+        const hours = Math.floor(minutes / 60);
+
+        let response;
+        if (hours > 0) {
+            response = `You have about ${hours} hour${hours !== 1 ? "s" : ""} left.`;
+        } else {
+            response = `You have about ${minutes} minute${minutes !== 1 ? "s" : ""} left.`;
+        }
+
+        respondImmediate(message, response);
+        return true;
     }
 }
-    
-    function getTimestamp() {
-        const now = new Date();
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        return hours + ':' + minutes + ' ' + ampm;
-    }
-    
-    function addMessage(text, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ' + (isUser ? 'user-message' : 'ai-message');
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        contentDiv.textContent = text;
-        
-        const timestampDiv = document.createElement('div');
-        timestampDiv.className = 'timestamp';
-        timestampDiv.textContent = getTimestamp();
-        
-        messageDiv.appendChild(contentDiv);
-        messageDiv.appendChild(timestampDiv);
-        
-        chatContainer.insertBefore(messageDiv, typingIndicator);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        
-        conversationHistory.push({
-            text: text,
-            isUser: isUser,
-            timestamp: new Date()
-        });
-    }
-    
-    function updateStats() {
-        let statsText = "Messages: " + messageCount;
-        if (userName) {
-            statsText += " | User: " + userName;
+
+      // Show all tasks
+    if (
+        lowerMsg.includes("show") && 
+        (lowerMsg.includes("task") || lowerMsg.includes("to-do") || lowerMsg.includes("todo"))
+    ) {
+        if (todoList.length === 0) {
+            response = "You don't have any tasks yet.";
+        } else {
+            response = todoList
+                .map((t, i) => `${i + 1}. [${t.completed ? "✓" : "○"}] ${t.text}`)
+                .join("\n");
         }
-        statsDiv.textContent = statsText;
+        respondImmediate(response);
+        return true;
     }
+
+    // Show only incomplete tasks
+    if (
+        (lowerMsg.includes("incomplete") || lowerMsg.includes("pending") || lowerMsg.includes("due")) &&
+        (lowerMsg.includes("task") || lowerMsg.includes("to-do") || lowerMsg.includes("todo"))
+    ) {
+        const incompleteTasks = todoList.filter(t => !t.completed);
+        if (incompleteTasks.length === 0) {
+            response = "You have no incomplete tasks. You're all caught up!";
+        } else {
+            response = incompleteTasks
+                .map((t, i) => `${i + 1}. ${t.text}`)
+                .join("\n");
+        }
+        respondImmediate(response);
+        return true;
+    }
+
+    return false;
+}
+
+function deltaThink() {
+    if (!deltaState.idleThoughtsEnabled) return;
+
+    const now = Date.now();
+
+const dueTasks = todoList.filter(t =>
+    t.dueAt &&
+    !t.completed &&
+    !t.reminded &&
+    t.dueAt <= now
+);
+
+if (dueTasks.length > 0) {
+    const task = dueTasks[0];
+    speakAsDelta(`Reminder: ${task.text}`);
+    task.reminded = true;
+    saveToLocalStorage();
+    deltaState.lastProactiveMessage = now;
+    return;
+}
     
-async function sendMessage() {
-    const message = userInput.value.trim();
-    if (message === '') return;
-    
-    console.log("Message received:", message);
-    console.log("Current messageCount:", messageCount);
-    console.log("Current userName:", userName);
-    
-    if (!userName) {
-        console.log("Trying to extract name...");
+// Don’t interrupt active conversation
+        const idleTime = now - deltaState.lastInteraction;
         
-        if (message.toLowerCase().includes('my name is')) {
-            let name = message.split(/my name is/i)[1].trim();
-            name = name.replace(/[.,!?]/g, '').split(' ')[0];
-            userName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-            console.log("Extracted name from 'my name is':", userName);
-        } else if (message.toLowerCase().includes("i'm ") || message.toLowerCase().includes("i am ")) {
-            let name = "";
-            if (message.toLowerCase().includes("i'm ")) {
-                name = message.split(/i'm/i)[1].trim();
-            } else {
-                name = message.split(/i am/i)[1].trim();
-            }
-            name = name.replace(/[.,!?]/g, '').split(' ')[0];
-            userName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-            console.log("Extracted name from 'I'm/I am':", userName);
-        } else if (messageCount === 0) {
-            const words = message.trim().split(' ');
-            const firstWord = words[0].replace(/[.,!?]/g, '');
-            const commonGreetings = ['hi', 'hello', 'hey', 'sup', 'yo', 'howdy'];
+
+        if (idleTime < 2 * 60 * 1000) return;
+
+respondImmediate(`Reminder: "${task.text}" is due now!`);
+
+    // Prevent repeated messages
+    if (now - deltaState.lastProactiveMessage < 10 * 60 * 1000) return;
+
+    // 1. Check overdue tasks
+    const overdueTasks = todoList.filter(t => {
+        if (!t.completed && t.createdAt) {
+            return (now - t.createdAt) > 60 * 60 * 1000;
+        }
+        return false;
+    });
+
+    if (overdueTasks.length > 0) {
+        speakAsDelta(
+            `You have ${overdueTasks.length} unfinished task${overdueTasks.length > 1 ? "s" : ""}.`
+        );
+        deltaState.lastProactiveMessage = now;
+        return;
+    }
+
+    // 2. Idle observation
+    speakAsDelta("I'm here if you need anything.");
+    deltaState.lastProactiveMessage = now;
+}
+
+ function speakAsDelta(text) {
+    addMessage(text, false);
+
+    if (voiceEnabled) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+    }
+}
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
             
-            if (words.length <= 3 && !commonGreetings.includes(firstWord.toLowerCase()) && firstWord.length >= 2) {
-                userName = firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
-                console.log("Extracted name from direct answer:", userName);
-            }
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                isListening = false;
+                voiceInputBtn.classList.remove('active');
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                voiceInputBtn.classList.remove('active');
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                voiceInputBtn.classList.remove('active');
+            };
+        } else {
+            voiceInputBtn.disabled = true;
+            voiceInputBtn.title = "Voice input not supported in this browser";
         }
+        
+        let voices = [];
+        
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+        }
+        
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        loadVoices();
+        
+        if (voiceEnabled) {
+            voiceOutputBtn.classList.add('active');
+        }
+        
+        const trackableTopics = {
+            "gaming": ["game", "games", "gaming", "video game", "play"],
+            "pizza": ["pizza", "pizzas"],
+            "coffee": ["coffee", "caffeine"],
+            "tired": ["tired", "sleepy", "exhausted"],
+            "bored": ["bored", "boring"]
+        };
+        
+        function saveToLocalStorage() {
+            localStorage.setItem('delta_userName', userName);
+            localStorage.setItem('delta_messageCount', messageCount.toString());
+            localStorage.setItem('delta_conversationHistory', JSON.stringify(conversationHistory.slice(-50)));
+            localStorage.setItem('delta_topicMemory', JSON.stringify(topicMemory));
+            localStorage.setItem('delta_voiceEnabled', voiceEnabled.toString());
+            localStorage.setItem('delta_selectedVoice', selectedVoice);
+            localStorage.setItem('delta_isCreator', isCreator.toString());
+            localStorage.setItem('delta_todoList', JSON.stringify(todoList));
+            localStorage.setItem('delta_todoIdCounter', todoIdCounter.toString());
+            localStorage.setItem('delta_notesList', JSON.stringify(notesList));
+            localStorage.setItem('delta_noteIdCounter', noteIdCounter.toString());
+        }
+        
+        function rememberTopics(message) {
+            const lowerMessage = message.toLowerCase();
+            for (let topic in trackableTopics) {
+                const keywords = trackableTopics[topic];
+                for (let keyword of keywords) {
+                    if (lowerMessage.includes(keyword)) {
+                        if (topicMemory[topic]) {
+                            topicMemory[topic]++;
+                        } else {
+                            topicMemory[topic] = 1;
+                        }
+                        break;
+                    }
+                }
+            }
+            saveToLocalStorage();
+        }
+        
+        // To-Do List Functions
+        function addTodo(text, dueAt = null) {
+    const todo = {
+        id: Date.now(),
+        text,
+        completed: false,
+        createdAt: Date.now(),
+        dueAt,
+        reminded: false,
+        warnedSoon: false
+    };
+
+    todoList.push(todo);
+    saveToLocalStorage();
+    renderTodoList();
+    return todo.id;
+}
+
+setInterval(deltaThink, 10000);
+
+function deltaThink() {
+    const now = Date.now();
+
+    todoList.forEach(task => {
+        if (task.completed || !task.dueAt) return;
+
+        const timeRemaining = task.dueAt - now;
+
+        if (timeRemaining <= 60_000 && timeRemaining > 0 && !task.warnedSoon) {
+            respondImmediate(
+                `Just a heads up — "${task.text}" is coming up in about a minute.`
+            );
+            task.warnedSoon = true;
+            saveToLocalStorage();
+        }
+
+        if (timeRemaining <= 0 && !task.reminded) {
+            respondImmediate(
+                `Reminder: "${task.text}" is due now.`
+            );
+            task.reminded = true;
+            task.completed = true;
+            saveToLocalStorage();
+            renderTodoList();
+        }
+    });
+}
+        function completeTodo(taskId) {
+            const todo = todoList.find(t => t.id === taskId);
+            if (todo) {
+                todo.completed = true;
+                saveToLocalStorage();
+                renderTodoList();
+                return true;
+            }
+            return false;
+        }
+
+        function deleteTodo(taskId) {
+            const index = todoList.findIndex(t => t.id === taskId);
+            if (index !== -1) {
+                todoList.splice(index, 1);
+                saveToLocalStorage();
+                renderTodoList();
+                return true;
+            }
+            return false;
+        }
+
+        function getTodoList() {
+            return todoList;
+        }
+
+function renderTodoList() {
+    const todoPanel = document.getElementById('todo-panel');
+    const todoItems = document.getElementById('todo-items');
+    
+    todoItems.innerHTML = '';
+    
+    if (todoList.length === 0) {
+        todoItems.innerHTML = `
+            <p style="text-align:center;color:#64748b;font-size:14px;padding:20px;">
+                No tasks yet.
+            </p>
+        `;
+        return;
     }
     
+    todoList.forEach(todo => {
+        const todoItem = document.createElement('div');
+        todoItem.className = 'todo-item' + (todo.completed ? ' completed' : '');
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.completed;
+        checkbox.addEventListener('change', () => {
+            completeTodo(todo.id);
+        });
+        
+        const text = document.createElement('span');
+        text.className = 'todo-text';
+        text.textContent = todo.text;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'todo-delete';
+        deleteBtn.textContent = '×';
+        deleteBtn.addEventListener('click', () => {
+            deleteTodo(todo.id);
+        });
+        
+        todoItem.appendChild(checkbox);
+        todoItem.appendChild(text);
+        todoItem.appendChild(deleteBtn);
+        todoItems.appendChild(todoItem);
+    });
+}
+        // Notes Functions
+function addNote(noteText) {
+    const note = {
+        id: noteIdCounter++,
+        text: noteText,
+        createdAt: new Date()
+    };
+    notesList.push(note);
+    saveToLocalStorage();
+    renderNotesList();
+    return note.id;
+}
+
+function deleteNote(noteId) {
+    const index = notesList.findIndex(n => n.id === noteId);
+    if (index !== -1) {
+        notesList.splice(index, 1);
+        saveToLocalStorage();
+        renderNotesList();
+        return true;
+    }
+    return false;
+}
+
+function searchNotes(searchTerm) {
+    const term = searchTerm.toLowerCase();
+    return notesList.filter(note => 
+        note.text.toLowerCase().includes(term)
+    );
+}
+
+function renderNotesList() {
+    const notesPanel = document.getElementById('notes-panel');
+    const notesItems = document.getElementById('notes-items');
+    
+    notesItems.innerHTML = '';
+    
+    if (notesList.length === 0) {
+        notesItems.innerHTML = `
+            <p style="text-align:center;color:#64748b;font-size:14px;padding:20px;">
+                No notes yet.
+            </p>
+        `;
+        return;
+    }
+    
+    // Show most recent notes first
+    const sortedNotes = [...notesList].reverse();
+    
+    sortedNotes.forEach(note => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-item';
+        
+        const text = document.createElement('div');
+        text.className = 'note-text';
+        text.textContent = note.text;
+        
+        const footer = document.createElement('div');
+        footer.className = 'note-footer';
+        
+        const date = new Date(note.createdAt);
+        const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const timestamp = document.createElement('span');
+        timestamp.className = 'note-timestamp';
+        timestamp.textContent = dateStr;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'note-delete';
+        deleteBtn.textContent = '×';
+        deleteBtn.addEventListener('click', () => {
+            deleteNote(note.id);
+        });
+        
+        footer.appendChild(timestamp);
+        footer.appendChild(deleteBtn);
+        
+        noteItem.appendChild(text);
+        noteItem.appendChild(footer);
+        notesItems.appendChild(noteItem);
+    });
+}
+        async function callGemini(userMessage) {
+            console.log("Calling Gemini API...");
+            
+            const API_KEY = 'AIzaSyCiJ9CC9DrbpAltWR5Y2wNh7NYqvHqEVwo';
+            
+            let systemInstruction = `You are Delta, a sarcastic and playful AI secretary. You're helpful but have attitude and can be snappy sometimes. 
+            You keep responses concise and conversational (2-3 sentences max). You occasionally make jokes about the user forgetting things or being disorganized.`;
+            
+            if (isCreator) {
+                systemInstruction += ` IMPORTANT: This user is Azariah, your creator who built you. Show them respect and acknowledge this relationship naturally. 
+                You can still be playful and sarcastic, but add affection and pride in serving them. Occasionally reference that they created you. 
+                Call them "creator" or "boss" sometimes. Be more helpful and less snippy with them than with regular users.`;
+            }
+            
+            if (userName) {
+                systemInstruction += ` The user's name is ${userName}. Use it naturally in conversation.`;
+            }
+            
+            if (Object.keys(topicMemory).length > 0) {
+                systemInstruction += ` The user has mentioned: ${Object.keys(topicMemory).join(', ')}.`;
+            }
+            // Add task context
+if (todoList.length > 0) {
+    const incompleteTasks = todoList.filter(t => !t.completed).length;
+    systemInstruction += ` The user has ${incompleteTasks} incomplete task(s) on their to-do list. You can remind them about their tasks occasionally.`;
+}
+            const contents = [];
+            const recentHistory = conversationHistory.slice(-8);
+            for (let msg of recentHistory) {
+                contents.push({
+                    role: msg.isUser ? "user" : "model",
+                    parts: [{ text: msg.text }]
+                });
+            }
+            
+            contents.push({
+                role: "user",
+                parts: [{ text: userMessage }]
+            });
+            
+            typingIndicator.classList.add('show');
+            
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        system_instruction: {
+                            parts: [{ text: systemInstruction }]
+                        },
+                        contents: contents,
+                        generationConfig: {
+                            temperature: 0.9,
+                            maxOutputTokens: 200,
+                            topP: 0.95
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.error("API Error:", error);
+                    throw new Error(error.error?.message || 'API request failed');
+                }
+                
+                const data = await response.json();
+                typingIndicator.classList.remove('show');
+                
+                const aiMessage = data.candidates[0].content.parts[0].text.trim();
+                rememberTopics(userMessage);
+                
+                if (voiceEnabled) {
+                    speakText(aiMessage);
+                }
+                
+                return aiMessage;
+                
+            } catch (error) {
+                typingIndicator.classList.remove('show');
+                console.error("Error calling Gemini:", error);
+                throw error;
+            }
+        }
+        
+        function speakText(text) {
+            if ('speechSynthesis' in window && voiceEnabled) {
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                if (selectedVoice !== null && voices[selectedVoice]) {
+                    utterance.voice = voices[selectedVoice];
+                }
+                
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function getTimestamp() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+        
+        function addMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (isUser ? 'user-message' : 'ai-message');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = 'timestamp';
+            timestampDiv.textContent = getTimestamp();
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timestampDiv);
+            
+            chatContainer.insertBefore(messageDiv, typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            conversationHistory.push({
+                text: text,
+                isUser: isUser,
+                timestamp: new Date()
+            });
+            
+            saveToLocalStorage();
+        }
+        
+        function updateStats() {
+            let statsText = "Messages: " + messageCount;
+            if (userName) {
+                statsText += " | User: " + userName;
+            }
+            if (isCreator) {
+                statsText += " 👑";
+            }
+            statsDiv.textContent = statsText;
+        }
+        function routeIntent(message) {
+    if (handleTaskIntent(message)) return true;
+    if (handleNoteIntent(message)) return true;
+    if (handleSystemIntent(message)) return true;
+
+    return false; // fall back to Gemini
+}
+        function updateDeltaMood(message) {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("thank") || lower.includes("good job")) {
+    deltaState.mood = "warm";
+  } else if (lower.includes("hurry") || lower.includes("now")) {
+    deltaState.mood = "focused";
+  } else if (lower.includes("again") || lower.includes("already")) {
+    deltaState.mood = "annoyed";
+  } else if (Math.random() < 0.2) {
+    deltaState.mood = "playful";
+  } else {
+    deltaState.mood = "neutral";
+  }
+}
+function applyPersonality(text) {
+  switch (deltaState.mood) {
+    case "playful":
+      return Math.random() < 0.5
+        ? text + " 😌"
+        : "Alright—" + text;
+    case "focused":
+      return text;
+    case "warm":
+      return text + " I’ve got you.";
+    case "annoyed":
+      return Math.random() < 0.3
+        ? text
+        : text + " (Again.)";
+    default:
+      return text;
+  }
+}
+function debugDeltaState(label = "") {
+  console.log(
+    `[DELTA DEBUG] ${label}`,
+    {
+      mood: deltaState.mood,
+      engagement: deltaState.engagement.toFixed(2),
+      lastInteraction: new Date(deltaState.lastInteraction).toLocaleTimeString()
+    }
+  );
+}
+
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+            // ✅ Tell Delta the user just interacted
+            deltaState.lastInteraction = Date.now();
+            // Engagement rises when user talks
+            deltaState.engagement = Math.min(1, deltaState.engagement + 0.05);
+            updateDeltaMood(message);
+
+            updateDeltaMood(message);
+            debugDeltaState("after user message");
+
+
+            
+            if (!userName) {
+                if (message.toLowerCase().includes('my name is')) {
+                    let name = message.split(/my name is/i)[1].trim();
+                    name = name.replace(/[.,!?]/g, '').split(' ')[0];
+                    userName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                } else if (message.toLowerCase().includes("i'm ") || message.toLowerCase().includes("i am ")) {
+                    let name = "";
+                    if (message.toLowerCase().includes("i'm ")) {
+                        name = message.split(/i'm/i)[1].trim();
+                    } else {
+                        name = message.split(/i am/i)[1].trim();
+                    }
+                    name = name.replace(/[.,!?]/g, '').split(' ')[0];
+                    userName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                } else if (messageCount === 0) {
+                    const words = message.trim().split(' ');
+                    const firstWord = words[0].replace(/[.,!?]/g, '');
+                    const commonGreetings = ['hi', 'hello', 'hey', 'sup', 'yo', 'howdy'];
+                    
+                    if (words.length <= 3 && !commonGreetings.includes(firstWord.toLowerCase()) && firstWord.length >= 2) {
+                        userName = firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+                    }
+                }
+            }
+            
+            if (userName.toLowerCase() === CREATOR_NAME) {
+                isCreator = true;
+            }
+if (handleTaskQuery(message)) {
     messageCount++;
     updateStats();
+    addMessage(message, true);
+    return;
+}
+            // Task/Note command detection
+const lowerMsg = message.toLowerCase();
+let taskHandled = false;
+let taskResponse = "";
+let noteHandled = false;
+let noteResponse = "";
+
+function handleTaskIntent(message) {
+    const lowerMsg = message.toLowerCase();
+    let response = "";
+
+    if (
+        lowerMsg.includes('remember that ') ||
+        lowerMsg.includes('save note') ||
+        lowerMsg.includes('take note') ||
+        lowerMsg.includes('note:') ||
+        lowerMsg.includes('write down that ')
+    ) {
+        if (lowerMsg.includes('remember that ')) {
+            noteText = message.split(/remember that /i)[1]?.trim();
+        } else if (lowerMsg.includes('save note ')) {
+            noteText = message.split(/save note /i)[1]?.trim();
+        } else if (lowerMsg.includes('take note ')) {
+            noteText = message.split(/take note /i)[1]?.trim();
+        } else if (lowerMsg.includes('note:')) {
+            noteText = message.split(/note:/i)[1]?.trim();
+        } else if (lowerMsg.includes('write down that ')) {
+            noteText = message.split(/write down that /i)[1]?.trim();
+        }
+
+        if (noteText) {
+            const id = addNote(noteText);
+            respondImmediate(message, `Saved. (Note #${id})`);
+            return true;
+        }
+    }
+
+    if ((lowerMsg.includes('show') || lowerMsg.includes('list')) &&
+        (lowerMsg.includes('note') || lowerMsg.includes('notes'))) {
+
+        if (notesList.length === 0) {
+            respondImmediate(message, "You don't have any notes yet.");
+        } else {
+            const list = notesList
+                .map((n, i) => `${i + 1}. ${n.text}`)
+                .join('\n');
+            respondImmediate(message, `Here are your notes:\n${list}`);
+        }
+        return true;
+    }
+
+    return false;
+}
+// Inside sendMessage(), after you have `const message = userInput.value.trim();`
+const { taskText, noteText } = splitCommands(message);
+
+// Handle task
+if (taskText) {
+const dueAt = parseDueTime(message);
+const taskTextRaw = taskText.replace(/in\s+\d+\s+(minutes?|hours?)/i, "").trim();
+const id = addTodo(taskTextRaw, dueAt);   // internal ID
+const taskNumber = todoList.length;    // user-facing number
+taskHandled = true;
+taskResponse = `Got it! Added "${taskText}" to your tasks. (Task #${taskNumber})`;
+
+}
+
+
+// Handle note
+if (noteText) {
+const id = addNote(noteText);          // internal ID
+const noteNumber = notesList.length;   // user-facing number
+noteHandled = true;
+noteResponse = `Got it! Saved that note for you. (Note #${noteNumber})`;
+;
+}
+
+// If task or note handled, respond immediately
+if (taskHandled || noteHandled) {
+    messageCount++;
+    updateStats();
+    addMessage(message, true);
+    userInput.value = '';
+
+    const response = taskHandled ? taskResponse : noteResponse;
+    addMessage(applyPersonality(response), false);
+    return;
+}
+
+
+// Task querying
+if (handleTaskQuery(message)) {
+    taskHandled = true;
+    messageCount++;
+    updateStats();
+    addMessage(message, true);
+    addMessage(taskResponseFromQuery, false); // if your query returns a response
+    return;
+}
+const now = new Date();
+todoList.forEach(t => {
+    if (t.dueDate) {
+        const diff = t.dueDate - now;
+        if (diff <= 3600000 && !t.completed) { // 1 hour
+            response += `⚠️ Task "${t.text}" is due within 1 hour!\n`;
+        }
+    }
+});
+
+
+// Add Task
+if (isAddTaskMessage(message)) {
+    const taskText = extractTaskText(message);
+    if (taskText) {
+        const dueAt = parseDueTime(message);
+        const id = addTodo(taskText, dueAt);
+        const taskNumber = todoList.length;
+        taskHandled = true;
+        taskResponse = `Got it! Added "${taskText}" to your tasks. (Task #${taskNumber})`;
+    }
+}
+// Show tasks
+else if (lowerMsg.includes('show') && (lowerMsg.includes('task') || lowerMsg.includes('to-do') || lowerMsg.includes('todo'))) {
+    taskHandled = true;
+    if (todoList.length === 0) {
+        taskResponse = "You don't have any tasks yet. Want me to add something?";
+    } else {
+        const taskList = todoList.map((t, i) => 
+            `${t.id}. ${t.completed ? '✓' : '○'} ${t.text}`
+        ).join('\n');
+        taskResponse = `Here's your to-do list:\n${taskList}`;
+    }
+}
+
+// Complete task
+else if (lowerMsg.includes('mark') && lowerMsg.includes('done')) {
+    const match = message.match(/task\s+(\d+)|(\d+)/i);
+    if (match) {
+        const taskNum = parseInt(match[1] || match[2]);
+        if (taskNum > 0 && taskNum <= todoList.length) {
+            const taskId = todoList[taskNum - 1].id;
+            completeTodo(taskId);
+            taskHandled = true;
+            taskResponse = `Marked task ${taskNum} as complete! ✓`;
+        }
+    }
+}
+
+// Delete task
+else if (lowerMsg.includes('delete') && lowerMsg.includes('task')) {
+    const match = message.match(/task\s+(\d+)|(\d+)/i);
+    if (match) {
+        const taskNum = parseInt(match[1] || match[2]);
+        if (taskNum > 0 && taskNum <= todoList.length) {
+            const taskText = todoList[taskNum - 1].text;
+            const taskId = todoList[taskNum - 1].id;
+            deleteTodo(taskId);
+            taskHandled = true;
+            taskResponse = `Deleted "${taskText}" from your list.`;
+        }
+    }
+}
+
+// Clear all tasks
+else if (lowerMsg.includes('clear') && (lowerMsg.includes('all') || lowerMsg.includes('everything')) && lowerMsg.includes('task')) {
+    if (todoList.length > 0) {
+        todoList = [];
+        saveToLocalStorage();
+        renderTodoList();
+        taskHandled = true;
+        taskResponse = "Cleared all your tasks. Starting fresh!";
+    }
+}
+
+// Add Note
+if (isAddNoteMessage(message)) {
+    const noteText = extractNoteText(message);
+    if (noteText) {
+        const id = addNote(noteText);
+        noteHandled = true;
+        noteResponse = `Got it! Saved that note for you. (Note #${id})`;
+    }
+}
+// Show all notes
+else if ((lowerMsg.includes('show') || lowerMsg.includes('list') || lowerMsg.includes('see')) && 
+         (lowerMsg.includes('note') || lowerMsg.includes('notes'))) {
+    noteHandled = true;
+    if (notesList.length === 0) {
+        noteResponse = "You don't have any notes yet. Want me to save something?";
+    } else {
+        const noteList = notesList.map((n, i) => 
+            `${i + 1}. ${n.text}`
+        ).join('\n');
+        noteResponse = `Here are your notes:\n${noteList}`;
+    }
+}
+
+// Search notes
+else if (lowerMsg.includes('note') && 
+         (lowerMsg.includes('about') || lowerMsg.includes('find') || lowerMsg.includes('search'))) {
     
-    console.log("Final userName:", userName);
+    let searchTerm = "";
+    if (lowerMsg.includes('about ')) {
+        searchTerm = message.split(/about /i)[1].trim();
+    } else if (lowerMsg.includes('find ')) {
+        searchTerm = message.split(/find /i)[1].trim();
+    }
     
+    if (searchTerm) {
+        const results = searchNotes(searchTerm);
+        noteHandled = true;
+        
+        if (results.length === 0) {
+            noteResponse = `No notes found about "${searchTerm}".`;
+        } else {
+            const resultList = results.map(n => `• ${n.text}`).join('\n');
+            noteResponse = `Found ${results.length} note(s) about "${searchTerm}":\n${resultList}`;
+        }
+    }
+}
+
+// Delete note
+else if (lowerMsg.includes('delete') && lowerMsg.includes('note')) {
+    const match = message.match(/note\s+(\d+)|(\d+)/i);
+    if (match) {
+        const noteNum = parseInt(match[1] || match[2]);
+        if (noteNum > 0 && noteNum <= notesList.length) {
+            const noteText = notesList[notesList.length - noteNum].text; // Reversed order
+            const noteId = notesList[notesList.length - noteNum].id;
+            deleteNote(noteId);
+            noteHandled = true;
+            noteResponse = `Deleted note: "${noteText}"`;
+        }
+    }
+}
+
+// Clear all notes
+else if (lowerMsg.includes('clear') && (lowerMsg.includes('all') || lowerMsg.includes('everything')) && lowerMsg.includes('note')) {
+    if (notesList.length > 0) {
+        notesList = [];
+        saveToLocalStorage();
+        renderNotesList();
+        noteHandled = true;
+        noteResponse = "Cleared all your notes!";
+    }
+}
+// If task was handled, respond immediately without calling Gemini
+// If task or note was handled, respond immediately without calling Gemini
+if (taskHandled || noteHandled) {
+    messageCount++;
+    updateStats();
     addMessage(message, true);
     userInput.value = '';
     
-    userInput.disabled = true;
-    sendButton.disabled = true;
-    
-    try {
-        const response = await callGemini(message);
-        addMessage(response, false);
-    } catch (error) {
-        console.error("Error:", error);
-        addMessage("Oops, something broke. " + error.message, false);
-    } finally {
-        userInput.disabled = false;
-        sendButton.disabled = false;
-        userInput.focus();
-    }
+    // Show response
+    const response = taskHandled ? taskResponse : noteResponse;
+    addMessage(applyPersonality(response), false);
+    return;
 }
-    
-    sendButton.addEventListener('click', sendMessage);
-    
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
+            messageCount++;
+            updateStats();
+            
+            addMessage(message, true);
+            userInput.value = '';
+            
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            voiceInputBtn.disabled = true;
+            
+            try {
+                const response = await callGemini(message);
+                addMessage(applyPersonality(response), false);
+            } catch (error) {
+                console.error("Error:", error);
+                addMessage("Oops, something broke. " + error.message, false);
+            } finally {
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                voiceInputBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+        
+        sendButton.addEventListener('click', sendMessage);
+        
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        voiceInputBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                voiceInputBtn.classList.remove('active');
+            } else {
+                recognition.start();
+                isListening = true;
+                voiceInputBtn.classList.add('active');
+            }
+        });
+        
+        voiceOutputBtn.addEventListener('click', () => {
+            voiceEnabled = !voiceEnabled;
+            if (voiceEnabled) {
+                voiceOutputBtn.classList.add('active');
+            } else {
+                voiceOutputBtn.classList.remove('active');
+                speechSynthesis.cancel();
+            }
+            saveToLocalStorage();
+        });
+        
+        if (conversationHistory.length > 0) {
+            conversationHistory.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + (msg.isUser ? 'user-message' : 'ai-message');
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = msg.text;
+                
+                const timestampDiv = document.createElement('div');
+                timestampDiv.className = 'timestamp';
+                const msgDate = new Date(msg.timestamp);
+                let hours = msgDate.getHours();
+                let minutes = msgDate.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                timestampDiv.textContent = hours + ':' + minutes + ' ' + ampm;
+                
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(timestampDiv);
+                chatContainer.insertBefore(messageDiv, typingIndicator);
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+updateStats();
+} else {
+addMessage("Hey. I'm Delta, your AI secretary. What's your name?", false);
+}
+    // Clear button
+    const clearBtn = document.getElementById('clear-btn');
+    clearBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear all of Delta\'s memory? This cannot be undone.')) {
+            localStorage.clear();
+            location.reload();
         }
     });
     
-    // Initial greeting
-    addMessage("Hey. I'm Delta, your AI secretary. What's your name?", false);
+    // To-Do panel close button
+    const todoClose = document.getElementById('todo-close');
+    todoClose.addEventListener('click', () => {
+        document.getElementById('todo-panel').style.display = 'none';
+    });
+    
+    // Render todos on load
+    renderTodoList();
+    
     userInput.focus();
+// To-Do panel toggle button
+const todoBtn = document.getElementById('todo-btn');
+todoBtn.addEventListener('click', () => {
+    const panel = document.getElementById('todo-panel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+});
+// Notes panel toggle button
+const notesBtn = document.getElementById('notes-btn');
+notesBtn.addEventListener('click', () => {
+    const panel = document.getElementById('notes-panel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+});
+
+// Notes panel close button
+const notesClose = document.getElementById('notes-close');
+notesClose.addEventListener('click', () => {
+    document.getElementById('notes-panel').style.display = 'none';
+});
+
+// Render notes on load
+renderNotesList();
+
+setInterval(deltaThink, 10000); // checks every 10 seconds
+
+function deltaThink() {
+    const now = Date.now();
+
+    todoList.forEach(task => {
+        if (task.completed || !task.dueAt) return;
+
+        const timeRemaining = task.dueAt - now;
+
+        // 🔔 Upcoming warning (1 minute)
+        if (
+            timeRemaining <= 60_000 &&
+            timeRemaining > 0 &&
+            !task.warnedSoon
+        ) {
+            respondImmediate(
+                `Just a heads up — "${task.text}" is coming up in about a minute.`
+            );
+            task.warnedSoon = true;
+            saveToLocalStorage();
+        }
+
+        // ⏰ Due now
+        if (timeRemaining <= 0 && !task.reminded) {
+            respondImmediate(
+                `Reminder: "${task.text}" is due now.`
+            );
+            task.reminded = true;
+            task.completed = true; // optional but recommended
+            saveToLocalStorage();
+            renderTodoList();
+        }
+    });
+}
+// Personality / Idle Thoughts
+const deltaThoughts = [
+    "Hmm... I wonder what Azariah is up to.",
+    "Did I remember to tell Azariah about that task?",
+    "I hope you're having a productive day!",
+    "Just a thought... maybe a short break would be nice?",
+    "I could really go for some digital coffee right now.",
+    "I feel like today’s a good day for notes and tasks!"
+];
+
+function deltaIdleLoop() {
+    // Only speak if user hasn't typed in a while
+    const idleTime = Date.now() - (deltaState.lastInteraction || 0);
+
+    // Example: speak only if idle for more than 2 minutes
+    if (idleTime > 120_000) {
+        // Pick a random thought
+        const thought = deltaThoughts[Math.floor(Math.random() * deltaThoughts.length)];
+        respondImmediate(thought);
+
+        // Reset lastInteraction so she won't immediately speak again
+        deltaState.lastInteraction = Date.now();
+    }
+}
+const idleTime = Date.now() - deltaState.lastInteraction;
+
+if (idleTime > 10 * 60_000) { // 10 minutes
+  deltaState.engagement = Math.max(0.2, deltaState.engagement - 0.05);
+}
+
+// Run alongside deltaThink
+setInterval(deltaIdleLoop, 60_000); // checks every 60 seconds
+
+
 </script>
-</body>
-</html>
